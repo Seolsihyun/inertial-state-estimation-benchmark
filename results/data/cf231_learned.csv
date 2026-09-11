@@ -1,0 +1,5 @@
+method,input_at_run5,position_rmse_m,position_final_error_m,so3_rmse_deg,so3_final_error_deg,roll_rmse_deg,pitch_rmse_deg,yaw_rmse_deg
+Fixed-bias IMU DR,"initial state + fixed calibration + Run-5 IMU",522.200720,1005.429617,3.553516,8.752043,1.412581,3.150956,0.830180
+Shallow learned velocity + InEKF,"initial state + fixed calibration + Run-5 IMU",4.391523,7.746985,4.025789,5.065617,1.156062,0.866304,3.758454
+Small TCN loose integration,"initial state + fixed calibration + Run-5 IMU",2.395497,2.839877,3.553516,8.752043,1.412581,3.150956,0.830180
+Small TCN + InEKF velocity update,"initial state + fixed calibration + Run-5 IMU",2.613106,3.240965,1.796398,0.460511,1.100244,0.841150,1.144664

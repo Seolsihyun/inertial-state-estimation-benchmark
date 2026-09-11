@@ -1,0 +1,20 @@
+dataset:
+  type: euroc
+  name: euroc
+  sequence: V1_01_easy_imu_only
+  root: data/euroc/V1_01_easy/mav0
+  imu_stride: 5
+  measurement_stride: 20
+  position_noise_std: 0.05
+  seed: 0
+  gravity: [0.0, 0.0, -9.81]
+
+pose_type: 3d
+mode: imu_only
+use_dataset_initialization: true
+output_root: outputs
+
+measurements:
+  use_position: false
+  use_velocity: false
+  use_attitude: false

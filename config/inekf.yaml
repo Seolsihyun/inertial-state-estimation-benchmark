@@ -1,0 +1,24 @@
+pose_type: 3d
+mode: fused
+use_dataset_initialization: true
+motion_model: &motion
+  translation_input_frame: body
+  translation_input_type: acceleration
+  rotation_input_type: rate
+  gravity: [0.0, 0.0, -9.81]
+  process_noise_diag: [1.0e-5, 1.0e-5, 1.0e-5, 2.0e-3, 2.0e-3, 2.0e-3, 2.0e-3, 2.0e-3, 2.0e-3, 1.0e-7, 1.0e-7, 1.0e-7, 1.0e-5, 1.0e-5, 1.0e-5]
+measurement_model: &measurement
+  measurement_noise_diag: [2.5e-3, 2.5e-3, 2.5e-3]
+initialization: &initialization
+  mean: [0, 0, 0, 0, 0, 0]
+  velocity_mean: [0, 0, 0]
+  cov_diag: [1.0e-3, 1.0e-3, 1.0e-3, 1.0e-2, 1.0e-2, 1.0e-2, 1.0e-2, 1.0e-2, 1.0e-2, 1.0e-5, 1.0e-5, 1.0e-5, 1.0e-4, 1.0e-4, 1.0e-4]
+
+Hoon_invariant_kalman_analytic_15d:
+  pose_type: 3d
+  mode: fused
+  motion_model:
+    <<: *motion
+    jacobian_mode: analytic
+  measurement_model: *measurement
+  initialization: *initialization

@@ -1,0 +1,22 @@
+dataset:
+  type: i2nav
+  name: i2nav
+  sequence: street00
+  root: data/i2nav_robot/street00
+  imu: data/i2nav_robot/street00/street00_ADIS16465_IMU.txt
+  groundtruth: data/i2nav_robot/street00/street00_groundtruth.nav
+  gnss: data/i2nav_robot/street00/street00_F9P_GNSS.pos
+  gnss_every: 1
+  duration_sec: 0
+  pseudo_gnss_hz: 1.0
+  gravity: [0.0, 0.0, 9.81]
+measurements:
+  use_position: true
+  use_velocity: false
+  use_attitude: false
+  velocity_measurement_noise_diag: [1.0e-2, 1.0e-2, 1.0e-2]
+  attitude_measurement_noise_diag: [7.6e-5, 7.6e-5, 7.6e-5]
+pose_type: 3d
+mode: fused
+use_dataset_initialization: true
+output_root: outputs

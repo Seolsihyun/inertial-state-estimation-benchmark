@@ -1,0 +1,18 @@
+dataset:
+  type: pohang
+  name: pohang
+  sequence: pohang05
+  root: data/pohang_canal/pohang05
+  duration_sec: 0
+  measurement_every: 1
+  gravity: [0.0, 0.0, 9.81]
+measurements:
+  use_position: true
+  use_velocity: false
+  use_attitude: false
+  velocity_measurement_noise_diag: [1.0e-2, 1.0e-2, 1.0e-2]
+  attitude_measurement_noise_diag: [7.6e-5, 7.6e-5, 7.6e-5]
+pose_type: 3d
+mode: fused
+use_dataset_initialization: true
+output_root: outputs
