@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inertial-state-estimation-benchmark"
+version = "0.2.0"
+description = "Common 15D inertial filtering benchmark with EKF, UKF, PF, ESKF, InEKF and learned velocity updates"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.23",
+  "scipy>=1.10",
+  "PyYAML>=6.0",
+  "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+learned = ["torch>=2.0"]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Repository = "https://github.com/INHA-Artemis/inertial-state-estimation-benchmark"
+Upstream = "https://github.com/andyjaehun/State_Estimation"
+
+[project.scripts]
+state-estimation-run = "runners.run_filter:main"
+state-estimation-run-all = "runners.run_all:main"
+state-estimation-motion-benchmark = "runners.run_motion_regime_benchmark:main"
+state-estimation-cf231-tcn = "runners.run_cf231_small_tcn:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "state_estimation*",
+  "config*",
+  "datasets*",
+  "evaluation*",
+  "filters*",
+  "learned*",
+  "models*",
+  "runners*",
+  "utils*",
+]
+
+[tool.setuptools.package-data]
+config = ["*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
