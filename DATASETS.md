@@ -54,5 +54,3 @@ data/
 ### CF231
 
 각 run 폴더에 IMU와 pose CSV가 모두 있어야 합니다. `poses.csv`는 학습 run의 속도 정답과 최종 평가에 사용합니다. Run 5의 첫 pose/velocity/orientation과 accelerometer bias의 gravity direction은 GT로 정하고, 그 이후 propagation과 learned update의 runtime sensor는 IMU만 사용합니다.
-
-원시 데이터가 없더라도 `python examples/basic_filter_loop.py`와 합성 회전 실험은 실행할 수 있습니다.

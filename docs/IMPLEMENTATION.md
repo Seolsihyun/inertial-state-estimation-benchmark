@@ -91,7 +91,7 @@ Kalman 계산은 `utils/filter_math.py::kalman_update()`, group correction은 `f
 
 ## 5. bias state
 
-공통 필터는 15D 상태에 bias error를 포함합니다. 다만 실험별 정책이 다릅니다.
+공통 필터는 15D 상태에 bias error를 포함합니다.
 
 | 실험 | bias 초기값 | 실행 중 update |
 |---|---|---|
@@ -99,8 +99,6 @@ Kalman 계산은 `utils/filter_math.py::kalman_update()`, group correction은 `f
 | synthetic | generator의 초기 true bias | random walk는 필터에 알려주지 않음 |
 | CF231 fixed/TCN | Run 5 초기 정지 구간에서 추정해 IMU를 사전 보정; 필터 내부 bias는 0 | `update_biases=False`, 고정 |
 | i2Nav/Pohang | 0 | 현재 별도 calibration 없음 |
-
-따라서 데이터셋 간 RMSE를 비교할 때는 bias 조건을 같은 것처럼 해석하면 안 됩니다.
 
 ## 6. CF231 Small TCN 경로
 

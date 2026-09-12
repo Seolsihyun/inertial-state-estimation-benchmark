@@ -3,18 +3,14 @@
 ## 1. 지난 학기 benchmark
 
 - 저장소: <https://github.com/INHA-Artemis/State_Estimation_Benchmark>
-- 확인 commit: `2b9199f993703a98b811fccd7631a06b87763ff0`
 
-지난 학기에는 여러 외부 필터 구현을 데이터셋별 script로 실행하고 그래프·영상을 생성했습니다. 현재 코드와 파일 구조가 다르므로 지난 학기 수치를 현재 필터의 성능표에 직접 합치지 않습니다.
+지난 학기에는 여러 외부 필터 구현을 데이터셋별 script로 실행하고 그래프·영상을 생성했습니다.
 
 ## 2. 이번 작업의 출발 코드
 
 - 저장소: <https://github.com/andyjaehun/State_Estimation>
-- 기준 commit: `0967c4737f803aad897e1ba6e16211fb26288821`
-- commit 일시: 2026-08-13 14:34:16 +09:00
 
 가져온 부분:
-
 - EKF, UKF, PF, ESKF, InEKF 필터 class
 - EuRoC, i2Nav, Pohang, synthetic loader의 기본 구조
 - filter registry, 설정, metric, visualization
@@ -35,7 +31,7 @@
 
 ## 4. 외부 참고 구현
 
-InEKF propagation convention을 검토할 때 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현을 참고했습니다. 다음 수치는 0722 개발 당시 upstream commit `35855644064e4cfdfb67b83ff87b90af7f66fbf2`의 C++ propagation과 CF231 Run 5에 동일 초기 상태·bias·IMU를 넣어 비교했다고 남겨 둔 **historical propagation comparison** 기록입니다.
+InEKF propagation convention은 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현을 참고했습니다. 아래 수치는 0722 개발 당시에 남긴 **historical propagation comparison** 기록입니다.
 
 ```text
 SO(3)       1.41e-13 deg
@@ -43,12 +39,10 @@ velocity    5.69e-12 m/s
 position    5.88e-10 m
 ```
 
-현재 저장소에는 이 외부 비교의 script와 raw output이 없으므로 위 수치를 현재 primary benchmark와 같은 수준의 재현 가능한 validation 결과로 보면 안 됩니다. 또한 그 비교 범위는 measurement update가 없는 nominal propagation이었으며, Kalman covariance/update 전체가 외부 구현과 동일하다는 근거가 아닙니다.
+현재 저장소에는 이 비교의 script와 raw output이 없으므로, 위 수치는 현재 primary benchmark처럼 재현할 수 있는 validation 결과가 아닙니다. 당시 비교 범위도 measurement update가 없는 nominal propagation이며, Kalman covariance/update 전체에 대한 외부 검증은 아닙니다.
 
 ## 5. 결과 출처
 
 - `results/data/euroc_results.csv`: `config/euroc.yaml`, `euroc_imu_only.yaml`로 전체 재실행
 - `results/data/motion_regime_metrics.csv`: `config/motion_regimes.yaml`로 생성
 - `results/data/cf231_run5_summary.json`: `runners/run_cf231_small_tcn.py`의 training/CV/test 출력
-
-원 설정과 output이 없는 historical CSV는 현재 결과에서 제외했습니다.
