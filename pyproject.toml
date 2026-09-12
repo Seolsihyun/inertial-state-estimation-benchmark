@@ -20,7 +20,7 @@ learned = ["torch>=2.0"]
 test = ["pytest>=7.0"]
 
 [project.urls]
-Repository = "https://github.com/INHA-Artemis/inertial-state-estimation-benchmark"
+Repository = "https://github.com/Seolsihyun/inertial-state-estimation-benchmark"
 Upstream = "https://github.com/andyjaehun/State_Estimation"
 
 [project.scripts]

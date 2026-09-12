@@ -1,0 +1,2 @@
+method,input_at_run5,position_rmse_m,position_final_error_m,so3_rmse_deg,so3_final_error_deg,roll_rmse_deg,pitch_rmse_deg,yaw_rmse_deg
+Shallow learned velocity + InEKF,"GT-assisted initial state/calibration + Run-5 IMU",4.391523,7.746985,4.025789,5.065617,1.156062,0.866304,3.758454

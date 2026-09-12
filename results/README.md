@@ -7,7 +7,8 @@
 | `data/euroc_results.csv` | `runners/run_all.py` + `config/euroc*.yaml` |
 | `data/motion_regime_metrics.csv` | `runners/run_motion_regime_benchmark.py` |
 | `data/cf231_run5_summary.json` | `runners/run_cf231_small_tcn.py` |
-| `data/cf231_learned.csv` | CF231 summary의 method별 metric 정리 |
+| `data/cf231_learned.csv` | CF231 최종 comparison 3개 method의 metric 정리 |
+| `diagnostics/cf231_shallow_learned_velocity.csv` | Earlier diagnostic baseline. Not included in the final reported comparison. |
 
 EuRoC CSV의 SO(3) 지표는 저장된 전체 `estimate.csv`에 현재 `evaluation.metrics.compute_metrics()`를 적용해 계산했습니다. runtime은 장비 상태에 따라 달라지므로 정확도 결론으로 사용하지 않습니다.
 
