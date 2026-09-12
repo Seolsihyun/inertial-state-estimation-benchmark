@@ -68,7 +68,9 @@
 조건:
 
 - training: Runs 3, 4, 9, 10
-- bias/intrinsic fit: Runs 3, 9, 10 + Run 5 초기 정지 구간
+- gyro intrinsic/frame fit: Runs 3, 9, 10의 GT-derived angular velocity
+- process-noise stationary variance: Runs 3, 9, 10의 초기 1 s IMU
+- Run 5 fixed bias: Run 5의 검출된 초기 정지 구간; accelerometer bias의 gravity direction은 Run 5 초기 orientation 사용
 - test: Run 5, 181.3 s, 18,149 samples
 - Run 5 GT/reference: 초기 `R,v,p`와 accelerometer bias의 gravity direction, 전체 GT trajectory는 최종 scoring
 - 초기화 이후 time-varying Run 5 GT: propagation, TCN inference, InEKF update에 사용하지 않음

@@ -79,9 +79,19 @@ bg = [-0.0003308, -0.0000921,  0.0000360] rad/s
 ba = [ 0.4154277,  0.1496042,  0.0077138] m/s^2
 ```
 
-가속도 bias, 초기 위치·속도·자세에 Run 5 첫 GT를 사용합니다. 정확한 표기는 **GT-assisted initialization + fixed bias + 이후 IMU-only**입니다. 초기화 후에는 `update_biases=False`로 두어 bias를 다시 바꾸지 않습니다.
+가속도 bias, 초기 위치·속도·자세에 Run 5 첫 GT를 사용합니다. 정확한 표기는 **GT-assisted initialization + fixed bias + 이후 IMU-only**입니다. 추정한 bias로 propagation IMU를 미리 보정하므로 필터 내부 bias는 0으로 두고, 초기화 후에는 `update_biases=False`로 다시 바꾸지 않습니다.
 
-## 6. InEKF error와 covariance
+## 6. CF231 Small TCN 입력과 loose integration
+
+Small TCN이 받는 입력은 accelerometer 3축과 gyro 3축으로 이루어진 **6-axis IMU**입니다. `learned/cf231_protocol.py::network_imu()`는 각 run에서 처음 `min(100, N)`개 gyro sample의 평균을 구해 해당 run의 전체 gyro에서 뺑니다. 이 **입력 전처리 자체는 GT를 사용하지 않습니다.** 다만 학습 때는 training run의 GT-derived velocity가 target으로, GT-derived kinematics가 training window quality 선별에 사용됩니다.
+
+기본 window는 현재 sample을 포함한 **최근 200개 sample의 causal window**입니다. 기본 `downsample=2`이므로 이 200-sample 구간에서 두 sample 간격으로 선택한 100개 시점이 network에 들어갑니다. 출력은 **heading-frame 3D velocity**이며 attitude가 아닙니다.
+
+Small TCN loose integration은 TCN으로 attitude를 추정하지 않습니다. Fixed-bias IMU propagation이 구한 attitude/yaw로 TCN의 heading-frame velocity를 world frame으로 돌리고, TCN 출력이 있는 시점의 velocity만 교체한 뒤 적분합니다. 최종 trajectory에도 fixed-bias IMU propagation의 rotation을 그대로 복사하므로, fixed-bias DR과 loose integration의 SO(3) error는 같습니다.
+
+용어를 구분하면 fixed-bias IMU DR은 학습이 없는 IMU propagation이고, Small TCN 경로는 실행 중 6-axis IMU만 받지만 다른 run의 GT velocity로 미리 학습한 **learned IMU-only** 방법입니다. 따라서 Small TCN 결과를 pure IMU DR로 부르지 않습니다.
+
+## 7. InEKF error와 covariance
 
 InEKF는 `R, v, p`를 `SE_2(3)` matrix `X`로 묶고 작은 오차를 15차원으로 둡니다.
 
@@ -101,7 +111,7 @@ H_velocity[:, delta_v] = R
 
 IMU-only에서는 Kalman update가 없으므로 공분산 `P`가 잘 계산되어도 `R, v, p`를 되돌릴 innovation이 없습니다. 이 조건의 위치 발산은 관측 정보가 없는 적분의 특성입니다.
 
-## 7. measurement update
+## 8. measurement update
 
 ```text
 r = z - h(x)
@@ -114,7 +124,7 @@ P <- covariance update
 
 CF231 TCN은 `z_v`를 속도 측정처럼 넣습니다. 속도 noise covariance는 Run 5에서 맞추지 않고 training run 단위 leave-one-run-out residual로 계산합니다.
 
-## 8. 결과 검산 순서
+## 9. 결과 검산 순서
 
 1. `run_manifest.json`의 mode, bias, gravity, update 횟수를 본다.
 2. `estimate.csv` 첫 행이 초기 상태와 같은지 본다.
@@ -125,7 +135,7 @@ CF231 TCN은 `z_v`를 속도 측정처럼 넣습니다. 속도 noise covariance�
 
 RMSE가 작아도 final error가 크면 후반에 발산했을 수 있습니다. final error 하나만으로 전체 구간을 대표해서도 안 됩니다.
 
-## 9. 재현 명령
+## 10. 재현 명령
 
 ```bash
 python3 -m venv .venv
@@ -146,7 +156,7 @@ state-estimation-cf231-tcn \
 
 결과가 다르면 commit hash, Python/NumPy/PyTorch version, YAML, PF particle 수·seed, TCN epoch·seed·training run, 데이터 sample 수를 순서대로 비교합니다.
 
-## 10. 새 데이터 체크리스트
+## 11. 새 데이터 체크리스트
 
 - timestamp가 초 단위인가
 - gyro가 rad/s인가
