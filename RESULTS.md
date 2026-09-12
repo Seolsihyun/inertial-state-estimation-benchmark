@@ -70,7 +70,8 @@
 - training: Runs 3, 4, 9, 10
 - bias/intrinsic fit: Runs 3, 9, 10 + Run 5 초기 정지 구간
 - test: Run 5, 181.3 s, 18,149 samples
-- Run 5 GT: 초기 `R,v,p`, accelerometer bias의 gravity direction, 실행 후 score
+- Run 5 GT/reference: 초기 `R,v,p`와 accelerometer bias의 gravity direction, 전체 GT trajectory는 최종 scoring
+- 초기화 이후 time-varying Run 5 GT: propagation, TCN inference, InEKF update에 사용하지 않음
 - 초기화 후 runtime sensor: IMU
 - Small TCN: 36,003 parameters, 200-sample causal window
 

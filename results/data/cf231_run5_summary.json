@@ -12,7 +12,9 @@
       10
     ],
     "test_run": 5,
-    "test_gt_during_inference": false,
+    "gt_assisted_initialization": true,
+    "time_varying_gt_after_initialization": false,
+    "full_gt_used_for_final_scoring": true,
     "runtime_sensors": [
       "IMU"
     ],
@@ -21,7 +23,8 @@
       "velocity",
       "roll",
       "pitch",
-      "yaw"
+      "yaw",
+      "accelerometer_bias_gravity_direction"
     ],
     "window_samples": 200,
     "update_stride": 10,

@@ -1,9 +1,11 @@
 """End-to-end held-out CF231 Small-TCN and InEKF experiment.
 
-Runs 3/4/9/10 supervise the network and Run 5 is held out. During Run-5
-inference, the estimator receives one initial state, one fixed calibration
-from the initial stationary IMU interval, and subsequent IMU samples only.
-Run-5 ground truth is consumed only by ``score`` after all trajectories exist.
+Runs 3/4/9/10 supervise the network and Run 5 is held out. Run-5 reference
+data set the initial position, velocity, and orientation; the initial
+orientation also supplies the gravity direction used for accelerometer-bias
+calibration. After initialization, time-varying Run-5 ground truth is not used
+by propagation, TCN inference, or the InEKF update. The full ground-truth
+trajectory is used for final scoring.
 """
 
 from __future__ import annotations
@@ -400,16 +402,27 @@ def main() -> None:
         "small_tcn_inekf": tight,
     }
 
-    # Ground truth is used for the first time here after inference is complete.
+    # Time-varying ground truth is used here for final scoring after inference.
+    # Its initial sample was already used by prepare_inference for the initial
+    # state and accelerometer-bias gravity direction.
     metrics = {name: score(value, runs[args.test_run]) for name, value in trajectories.items()}
     summary = {
         "protocol": {
             "training_runs": training_ids,
             "bias_runs": bias_ids,
             "test_run": args.test_run,
-            "test_gt_during_inference": False,
+            "gt_assisted_initialization": True,
+            "time_varying_gt_after_initialization": False,
+            "full_gt_used_for_final_scoring": True,
             "runtime_sensors": ["IMU"],
-            "initial_external_information": ["position", "velocity", "roll", "pitch", "yaw"],
+            "initial_external_information": [
+                "position",
+                "velocity",
+                "roll",
+                "pitch",
+                "yaw",
+                "accelerometer_bias_gravity_direction",
+            ],
             "window_samples": args.window_samples,
             "update_stride": args.update_stride,
             "model_parameters": int(sum(value.numel() for value in model.parameters())),

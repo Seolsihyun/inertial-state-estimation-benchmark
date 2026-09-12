@@ -53,7 +53,7 @@ state-estimation-run-all --config config/euroc.yaml --particles 500
 - IMU-only에서 measurement update가 없으면 covariance가 nominal trajectory를 교정하지 않습니다. 동일 propagation을 쓰는 EKF와 InEKF의 궤적은 거의 같습니다.
 - EuRoC `V1_01_easy`에서 연속 IMU-only 위치 RMSE는 약 1.13 km로 발산했습니다. 순수 관성 적분의 한계를 보여주는 결과입니다.
 - 같은 sequence에 GT 위치+인위 noise를 2 Hz로 넣으면 EKF/UKF/InEKF 위치 RMSE는 0.11 m 수준입니다. 실제 GPS 검증은 아닙니다.
-- CF231 Run 5의 Small TCN은 다른 run의 GT velocity로 학습했습니다. 추론 시 센서는 IMU만 쓰지만, 학습 없는 pure inertial navigation으로 부르지 않습니다.
+- CF231 Run 5는 GT-assisted initial state/calibration 후 time-varying GT 없이 IMU로 추론하고, 전체 GT trajectory는 최종 scoring에 사용합니다. Small TCN은 다른 run의 GT velocity로 학습했으므로 학습 없는 pure inertial navigation으로 부르지 않습니다.
 - ESKF는 현재 발산 원인을 완전히 검증하지 못해 기본 비교에서 제외했습니다.
 
 ## 코드 구조
