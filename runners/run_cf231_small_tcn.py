@@ -1,11 +1,14 @@
 """End-to-end held-out CF231 Small-TCN and InEKF experiment.
 
-Runs 3/4/9/10 supervise the network and Run 5 is held out. Run-5 reference
-data set the initial position, velocity, and orientation; the initial
-orientation also supplies the gravity direction used for accelerometer-bias
-calibration. After initialization, time-varying Run-5 ground truth is not used
-by propagation, TCN inference, or the InEKF update. The full ground-truth
-trajectory is used for final scoring.
+Runs 3/4/9/10 supervise the network and Run 5 is held out.
+
+Run 5 reference is used once for GT-assisted initialization:
+initial position, initial velocity, initial orientation, and gravity direction
+for accelerometer-bias estimation.
+
+After initialization, no time-varying Run 5 ground truth is used for
+propagation, Small TCN inference, or InEKF velocity updates.
+The full Run 5 reference trajectory is used again only for final scoring.
 """
 
 from __future__ import annotations
@@ -320,7 +323,6 @@ def main() -> None:
         )
         for run_id in training_ids
     }
-
     residuals = []
     cross_validation = {}
     for fold, held_out in enumerate(training_ids):
@@ -353,7 +355,6 @@ def main() -> None:
     learned_covariance = np.diag(
         np.maximum(np.mean(pooled_residual**2, axis=0), 0.02**2)
     )
-
     train_x = np.concatenate([sets[run_id][0] for run_id in training_ids])
     train_y = np.concatenate([sets[run_id][1] for run_id in training_ids])
     if args.max_train_windows > 0 and train_x.shape[0] > args.max_train_windows:
@@ -367,7 +368,6 @@ def main() -> None:
         batch_size=args.batch_size,
         seed=args.seed,
     )
-
     base_calibration = training_calibration([runs[run_id] for run_id in bias_ids])
     test_input, test_calibration = prepare_inference(
         runs[args.test_run],
@@ -386,7 +386,6 @@ def main() -> None:
     lower = np.quantile(training_targets, 0.002, axis=0)
     upper = np.quantile(training_targets, 0.998, axis=0)
     test_prediction = np.clip(test_prediction, lower, upper)
-
     fixed = propagate(test_input)
     loose = loose_integration(test_input, fixed, update_indices, test_prediction)
     tight_mask = update_indices % args.update_stride == 0
@@ -401,10 +400,7 @@ def main() -> None:
         "small_tcn_loose": loose,
         "small_tcn_inekf": tight,
     }
-
-    # Time-varying ground truth is used here for final scoring after inference.
-    # Its initial sample was already used by prepare_inference for the initial
-    # state and accelerometer-bias gravity direction.
+    # Full Run 5 ground truth is used here for final scoring.
     metrics = {name: score(value, runs[args.test_run]) for name, value in trajectories.items()}
     summary = {
         "protocol": {
@@ -415,15 +411,9 @@ def main() -> None:
             "time_varying_gt_after_initialization": False,
             "full_gt_used_for_final_scoring": True,
             "runtime_sensors": ["IMU"],
-            "initial_external_information": [
-                "position",
-                "velocity",
-                "roll",
-                "pitch",
-                "yaw",
-                "accelerometer_bias_gravity_direction",
-            ],
+            "initial_external_information": ["position", "velocity", "roll", "pitch", "yaw"],
             "window_samples": args.window_samples,
+            "downsample": args.downsample,
             "update_stride": args.update_stride,
             "model_parameters": int(sum(value.numel() for value in model.parameters())),
         },

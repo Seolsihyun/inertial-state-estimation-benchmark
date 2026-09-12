@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -98,6 +99,18 @@ def _jsonable(value):
     return value
 
 
+def _git_commit() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (subprocess.SubprocessError, OSError):
+        return "unknown"
+
+
 def run_filter(args: argparse.Namespace) -> dict:
     common_cfg = _load_yaml(args.config)
     filter_cfg = _load_yaml(args.filter_config) if args.filter_config else _load_yaml(REPO_ROOT / "config" / f"{get_canonical_name(args.filter)}.yaml")
@@ -108,7 +121,6 @@ def run_filter(args: argparse.Namespace) -> dict:
     dataset_config, compare_config = _make_filter_config(args.filter, common_cfg, filter_cfg, dataset)
     filter_cls = get_filter_class(args.filter)
     estimator = filter_cls.from_configs(dataset_config, compare_config)
-
     measurement_cfg = common_cfg.get("measurements", {})
     use_position = bool(measurement_cfg.get("use_position", True))
     use_velocity = bool(measurement_cfg.get("use_velocity", False))
@@ -138,7 +150,6 @@ def run_filter(args: argparse.Namespace) -> dict:
                     noise_config=measurement_cfg,
                 )
             estimates[i] = estimator.estimate_pose()
-
     metrics = compute_metrics(estimates, dataset.ground_truth)
     metrics.update({
         "filter": get_canonical_name(args.filter),
@@ -164,6 +175,7 @@ def run_filter(args: argparse.Namespace) -> dict:
     manifest = {
         "software": {
             "project_version": __version__,
+            "git_commit": _git_commit(),
             "python_version": sys.version.split()[0],
             "numpy_version": np.__version__,
             "command": sys.argv,
