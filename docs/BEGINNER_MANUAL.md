@@ -83,13 +83,13 @@ ba = [ 0.4154277,  0.1496042,  0.0077138] m/s^2
 
 ## 6. CF231 Small TCN 입력과 loose integration
 
-Small TCN이 받는 입력은 accelerometer 3축과 gyro 3축으로 이루어진 **6-axis IMU**입니다. `learned/cf231_protocol.py::network_imu()`는 각 run에서 처음 `min(100, N)`개 gyro sample의 평균을 구해 해당 run의 전체 gyro에서 뺑니다. 이 **입력 전처리 자체는 GT를 사용하지 않습니다.** 다만 학습 때는 training run의 GT-derived velocity가 target으로, GT-derived kinematics가 training window quality 선별에 사용됩니다.
+Small TCN이 받는 입력은 accelerometer 3축과 gyro 3축으로 이루어진 **6-axis IMU**입니다. `learned/cf231_protocol.py::network_imu()`는 각 run에서 처음 `min(100, N)`개 gyro sample의 평균을 구해 해당 run의 전체 gyro에서 뺍니다. 이 **입력 전처리 자체는 GT를 사용하지 않습니다.** 다만 학습 때는 training run의 GT-derived velocity가 target으로, GT-derived kinematics가 training window quality 선별에 사용됩니다.
 
 기본 window는 현재 sample을 포함한 **최근 200개 sample의 causal window**입니다. 기본 `downsample=2`이므로 이 200-sample 구간에서 두 sample 간격으로 선택한 100개 시점이 network에 들어갑니다. 출력은 **heading-frame 3D velocity**이며 attitude가 아닙니다.
 
 Small TCN loose integration은 TCN으로 attitude를 추정하지 않습니다. Fixed-bias IMU propagation이 구한 attitude/yaw로 TCN의 heading-frame velocity를 world frame으로 돌리고, TCN 출력이 있는 시점의 velocity만 교체한 뒤 적분합니다. 최종 trajectory에도 fixed-bias IMU propagation의 rotation을 그대로 복사하므로, fixed-bias DR과 loose integration의 SO(3) error는 같습니다.
 
-용어를 구분하면 fixed-bias IMU DR은 학습이 없는 IMU propagation이고, Small TCN 경로는 실행 중 6-axis IMU만 받지만 다른 run의 GT velocity로 미리 학습한 **learned IMU-only** 방법입니다. 따라서 Small TCN 결과를 pure IMU DR로 부르지 않습니다.
+용어를 구분하면 fixed-bias IMU DR은 학습이 없는 IMU propagation이고, Small TCN 경로는 실행 중 6-axis IMU만 받지만 다른 run의 GT velocity로 미리 학습한 **learned IMU-only** 방법입니다.
 
 ## 7. InEKF error와 covariance
 
@@ -109,7 +109,7 @@ H_velocity[:, delta_v] = R
 
 입니다. correction도 `X @ Exp(delta)`를 씁니다. `tests/test_inekf_convention.py`가 analytic/finite-difference Jacobian과 correction 방향을 확인합니다.
 
-IMU-only에서는 Kalman update가 없으므로 공분산 `P`가 잘 계산되어도 `R, v, p`를 되돌릴 innovation이 없습니다. 이 조건의 위치 발산은 관측 정보가 없는 적분의 특성입니다.
+IMU-only에서는 Kalman update가 없으므로 공분산 `P`가 잘 계산되어도 `R, v, p`를 되돌릴 innovation이 없습니다.
 
 ## 8. measurement update
 
@@ -132,8 +132,6 @@ CF231 TCN은 `z_v`를 속도 측정처럼 넣습니다. 속도 noise covariance�
 4. position RMSE, final, max error를 함께 본다.
 5. roll/pitch/yaw와 SO(3) geodesic error를 함께 본다.
 6. 실행 시간은 같은 장비·sample·particle 조건에서만 비교한다.
-
-RMSE가 작아도 final error가 크면 후반에 발산했을 수 있습니다. final error 하나만으로 전체 구간을 대표해서도 안 됩니다.
 
 ## 10. 재현 명령
 
@@ -168,4 +166,3 @@ state-estimation-cf231-tcn \
 - position update와 evaluation GT가 같은 신호인가
 - bias를 어느 구간에서 구했는가
 
-이 항목을 먼저 기록한 뒤에야 필터 성능 비교가 의미가 있습니다.
