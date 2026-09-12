@@ -34,49 +34,41 @@ EKF/UKF/PF/ESKF도 동일 IMU 입력과 중력 정의를 쓰지만, quaternion a
 
 ## 3. InEKF covariance propagation
 
-InEKF의 local error state와 `process_noise_diag`의 순서는 같습니다.
+error-state 순서는 다음과 같습니다.
 
 ```text
-delta x = [dtheta, dv, dp, dbg, dba]
+[dtheta, dv, dp, dbg, dba]
 ```
 
-| `process_noise_diag` slice | 코드에서의 의미 |
-|---|---|
-| `[0:3]` | local rotation error `dtheta`에 더하는 축별 noise variance weight |
-| `[3:6]` | local velocity error `dv`에 더하는 축별 noise variance weight |
-| `[6:9]` | local position error `dp`에 더하는 축별 noise variance weight |
-| `[9:12]` | gyro-bias error `dbg`에 더하는 축별 noise variance weight |
-| `[12:15]` | accelerometer-bias error `dba`에 더하는 축별 noise variance weight |
+현재 구현에서 `process_noise_diag`는 위 15차원 local error-state에 대응하는 diagonal process covariance로 사용합니다.
 
-`process_noise_scale`을 각 원소에 곱한 뒤 `diagonal_covariance()`가 최소 `1e-12`로 clip하여 `Q`를 만듭니다. `predict()`에 구현된 실제 공분산 예측식은 다음과 같습니다.
+실제 `filters/InEKF.py::predict()`의 covariance prediction은 다음 형태입니다.
 
 ```text
-q = max(process_noise_scale, 0) * process_noise_diag
-Q = diag(max(q, 1e-12))
-P_raw[k+1] = Phi[k] P[k] Phi[k]^T
-             + Phi[k] Q Phi[k]^T * max(dt, 1e-9)
-P[k+1] = stabilize(P_raw[k+1])
+Q = diag(process_noise_diag)
+
+P[k+1]
+= Phi P[k] Phi^T
++ Phi Q Phi^T dt
 ```
 
-`stabilize()`는 행렬을 대칭화하고 고유값을 설정된 floor/ceiling 범위로 제한합니다. 즉 현재 코드는 일반적인 `P = Phi P Phi^T + G Qc G^T dt`를 별도의 `G`로 구현한 것이 아니라, 위의 `Phi Q Phi^T * dt`를 그대로 사용합니다.
+즉 현재 구현은 별도의 `G Qc G^T` continuous-to-discrete 계산을 수행하지 않고, 설정된 15차원 diagonal `Q`를 `Phi`와 `dt`로 전파합니다.
 
-runner가 사용하는 `InEKF`는 `InEKFAnalytic15D`의 alias이며, 기본 `jacobian_mode="analytic"`에서 `_analytic_process_jacobian()`이 discrete transition `Phi`를 만듭니다. 다만 이 함수 안에서 gyro-bias coupling 블록은 3축에 대한 local central finite difference로 구합니다. 검산용 `finite` mode는 전체 15D process Jacobian을 central finite difference로 계산하며, 테스트에서 기본 경로와 비교합니다.
-
-### CF231에서 넣는 process noise
-
-`learned/cf231_protocol.py::training_calibration()`은 기본 bias runs 3, 9, 10의 각 초기 1 s 정지 샘플에서 축별 robust variance `(1.4826 * MAD)^2`를 구하고, 그 run들 간 median을 저장합니다. `runners/run_cf231_small_tcn.py::make_inekf()`는 이 값을 다음과 같이 사용합니다.
+CF231 실험에서는 `runners/run_cf231_small_tcn.py::make_inekf()`에서 training calibration의 stationary sample variance를 다음 블록에 넣습니다.
 
 ```text
-process_noise_diag[0:3] = gyro_sample_variance
-process_noise_diag[3:6] = accel_sample_variance
-process_noise_diag[6:15] = 0
+Q[dtheta] <- gyro sample variance
+Q[dv]     <- accelerometer sample variance
+Q[dp]     <- 0
+Q[dbg]    <- 0
+Q[dba]    <- 0
 ```
 
-마지막 9개 원소의 0은 `diagonal_covariance()`에서 실제 `Q`를 만들 때 `1e-12`로 clip됩니다. 이 `Q`는 fixed-bias IMU DR에서는 nominal trajectory를 바꾸지 않고 공분산만 전파하며, Small TCN + InEKF에서는 velocity update의 Kalman gain에 영향을 줍니다.
+따라서 현재 CF231의 process-noise 설정은 Allan variance 또는 IMU noise-density 식별에서 얻은 엄밀한 continuous-time spectral density가 아니라, 초기 정지 구간의 sample variance를 이용한 empirical covariance 설정입니다.
 
-Run 5 초기 정지 구간은 이 process-noise variance를 맞추는 데 쓰지 않습니다. `test_calibration()`이 그 구간의 gyro/accelerometer **mean**으로 고정 bias를 구해 propagation IMU를 미리 보정하고, 필터 내부 bias는 0, `update_biases=False`로 실행합니다.
+향후에는 continuous-time IMU noise model과 `G Qc G^T` 기반 discretization을 별도로 검증할 필요가 있습니다.
 
-현재 CF231 noise 설정은 정지 샘플의 robust variance를 직접 매핑한 것입니다. Allan variance/deviation로 continuous-time gyro/accelerometer noise density와 bias random walk를 식별한 것이 아니며, `sample_period_s`를 이용한 spectral-density 변환도 하지 않습니다. 따라서 이 값을 엄밀하게 식별된 continuous-time IMU noise parameter로 해석하면 안 됩니다.
+`InEKFAnalytic15D._analytic_process_jacobian()`이 `Phi`를 만듭니다. 개발 중 검산을 위해 같은 class에 central finite-difference 경로를 남겨 두었습니다. measurement Jacobian은 테스트에서 두 경로를 숫자로 비교합니다.
 
 ## 4. right perturbation과 update
 
@@ -91,14 +83,16 @@ Kalman 계산은 `utils/filter_math.py::kalman_update()`, group correction은 `f
 
 ## 5. bias state
 
-공통 필터는 15D 상태에 bias error를 포함합니다. 
+공통 필터는 15D 상태에 bias error를 포함합니다. 다만 실험별 정책이 다릅니다.
 
 | 실험 | bias 초기값 | 실행 중 update |
 |---|---|---|
 | EuRoC | GT 첫 sample | 필터 설정에 따라 공분산 전파/update |
 | synthetic | generator의 초기 true bias | random walk는 필터에 알려주지 않음 |
-| CF231 fixed/TCN | Run 5 초기 정지 구간에서 추정해 IMU를 사전 보정; 필터 내부 bias는 0 | `update_biases=False`, 고정 |
+| CF231 fixed/TCN | Run 5 초기 정지 구간 | `update_biases=False`, 고정 |
 | i2Nav/Pohang | 0 | 현재 별도 calibration 없음 |
+
+따라서 데이터셋 간 RMSE를 비교할 때는 bias 조건을 같은 것처럼 해석하면 안 됩니다.
 
 ## 6. CF231 Small TCN 경로
 
@@ -111,7 +105,7 @@ Runs 3,4,9,10 IMU window
  -> InEKF Kalman update
 ```
 
-- window: 200 samples, downsample 2
+- window: 최근 200 raw sample 구간, downsample 2 -> network 입력 100 time steps
 - 입력: 6-axis IMU
 - 출력: heading frame 3D velocity
 - test: Run 5
