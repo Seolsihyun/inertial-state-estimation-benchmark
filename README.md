@@ -1,6 +1,7 @@
 # Inertial State Estimation Benchmark
 
-IMU로 자세·속도·위치를 적분하고, 위치 또는 학습 속도를 결합하는 과정을 재현하기 위한 코드입니다. 필터 수식, bias 사용 방식, GT 사용 범위, 실행 설정과 결과 파일을 서로 연결해 확인할 수 있게 구성했습니다.
+IMU로 자세·속도·위치를 적분하고, 위치 또는 학습 속도를 결합하는 과정을 재현하기 위한 코드입니다. 
+필터 수식, bias 사용 방식, GT 사용 범위, 실행 설정과 결과 파일을 서로 연결해 확인할 수 있게 구성했습니다.
 
 ## 먼저 볼 문서
 
@@ -23,7 +24,7 @@ IMU로 자세·속도·위치를 적분하고, 위치 또는 학습 속도를 �
 
 자세한 근거는 [이전 코드의 문제와 수정 내용](docs/CHANGES_FROM_PREVIOUS.md)에 파일·함수 단위로 적었습니다.
 
-## 5분 실행
+## 실행 방법
 
 ```bash
 python3 -m venv .venv
@@ -51,10 +52,9 @@ state-estimation-run-all --config config/euroc.yaml --particles 500
 ## 바로 알아야 할 결론
 
 - IMU-only에서 measurement update가 없으면 covariance가 nominal trajectory를 교정하지 않습니다. 동일 propagation을 쓰는 EKF와 InEKF의 궤적은 거의 같습니다.
-- EuRoC `V1_01_easy`에서 연속 IMU-only 위치 RMSE는 약 1.13 km로 발산했습니다. 순수 관성 적분의 한계를 보여주는 결과입니다.
-- 같은 sequence에 GT 위치+인위 noise를 2 Hz로 넣으면 EKF/UKF/InEKF 위치 RMSE는 0.11 m 수준입니다. 실제 GPS 검증은 아닙니다.
-- CF231 Run 5는 GT-assisted initial state/calibration 후 time-varying GT 없이 IMU로 추론하고, 전체 GT trajectory는 최종 scoring에 사용합니다. Small TCN은 다른 run의 GT velocity로 학습했으므로 학습 없는 pure inertial navigation으로 부르지 않습니다.
-- ESKF는 현재 발산 원인을 완전히 검증하지 못해 기본 비교에서 제외했습니다.
+- EuRoC `V1_01_easy`에서 연속 IMU-only 위치 RMSE는 약 1.13 km로 발산했습니다.
+- 같은 sequence에 GT 위치+인위 noise를 2 Hz로 넣으면 EKF/UKF/InEKF 위치 RMSE는 0.11 m 수준입니다.
+- CF231 Run 5는 GT-assisted initial state/calibration 후 time-varying GT 없이 IMU로 추론하고, 전체 GT trajectory는 최종 scoring에 사용합니다.
 
 ## 코드 구조
 
@@ -69,4 +69,4 @@ results/            재현한 표·그래프의 근거 파일
 tests/              시각 정렬, API, InEKF convention, metric 테스트
 ```
 
-초기 필터 구조는 `andyjaehun/State_Estimation` commit `0967c4737f803aad897e1ba6e16211fb26288821`을 기준으로 시작했습니다. 지난 학기 benchmark와 이번 추가·수정 범위는 [PROVENANCE.md](PROVENANCE.md)에 구분했습니다.
+초기 필터 구조는 `andyjaehun/State_Estimation`을 기준으로 시작했습니다. 지난 학기 benchmark와 이번 추가·수정 범위는 [PROVENANCE.md](PROVENANCE.md)에 구분했습니다.
