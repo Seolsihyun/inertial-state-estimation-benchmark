@@ -33,9 +33,7 @@
 
 InEKF nominal propagation convention은 개발 중 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현과 비교했습니다.
 
-과거 비교에서는 nominal propagation이 매우 작은 numerical difference 수준에서 일치했지만, 해당 validation script와 raw output은 현재 repository의 primary benchmark artifact로 포함하지 않았습니다.
-
-따라서 이 비교는 historical implementation check로만 기록하며, 현재 repository의 measurement update, covariance propagation, 전체 benchmark가 외부 구현과 동일함을 의미하지 않습니다.
+과거 비교에서는 nominal propagation이 매우 작은 numerical difference 수준에서 일치했습니다.
 
 ## 5. 결과 출처
 
