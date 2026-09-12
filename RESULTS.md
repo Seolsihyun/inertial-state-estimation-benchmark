@@ -42,7 +42,7 @@
 - 위치 측정을 넣으면 EKF/UKF/InEKF가 모두 0.11 m 수준이지만, 이 측정은 실제 GPS가 아니라 GT로 만든 pseudo-position입니다.
 - SO(3) 자세 RMSE는 fused EKF 3.988°, UKF 3.458°, InEKF 3.461°였습니다. 축별 Euler 오차와 전체 회전 오차의 순위가 다를 수 있으므로 둘을 함께 봐야 합니다.
 
-근거: [`results/data/euroc_results.csv`](results/data/euroc_results.csv), `config/euroc*.yaml`.
+근거: [`results/data/euroc_results.csv`](results/data/euroc_results.csv), `config/euroc.yaml`.
 
 ## 3. 3D motion-regime stress test
 
