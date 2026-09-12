@@ -4,7 +4,7 @@
 
 - 저장소: <https://github.com/INHA-Artemis/State_Estimation_Benchmark>
 
-지난 학기에는 여러 외부 필터 구현을 데이터셋별 script로 실행하고 그래프·영상을 생성했습니다. 
+지난 학기에는 여러 외부 필터 구현을 데이터셋별 script로 실행하고 그래프·영상을 생성했습니다.
 
 ## 2. 이번 작업의 출발 코드
 
@@ -31,15 +31,11 @@
 
 ## 4. 외부 참고 구현
 
-InEKF propagation convention은 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현과 비교했습니다.
+InEKF nominal propagation convention은 개발 중 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현과 비교했습니다.
 
-```text
-SO(3)       1.41e-13 deg
-velocity    5.69e-12 m/s
-position    5.88e-10 m
-```
+과거 비교에서는 nominal propagation이 매우 작은 numerical difference 수준에서 일치했지만, 해당 validation script와 raw output은 현재 repository의 primary benchmark artifact로 포함하지 않았습니다.
 
-이 비교는 **measurement update가 없는 nominal propagation이 reference와 같다**는 것을 확인합니다.
+따라서 이 비교는 historical implementation check로만 기록하며, 현재 repository의 measurement update, covariance propagation, 전체 benchmark가 외부 구현과 동일함을 의미하지 않습니다.
 
 ## 5. 결과 출처
 
