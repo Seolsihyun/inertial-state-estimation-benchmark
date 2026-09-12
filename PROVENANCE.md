@@ -35,7 +35,7 @@
 
 ## 4. 외부 참고 구현
 
-InEKF propagation convention은 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현과 비교했습니다. 0722 validation에서 upstream commit `35855644064e4cfdfb67b83ff87b90af7f66fbf2`의 C++ propagation과 CF231 Run 5에 동일 초기 상태·bias·IMU를 넣었을 때 최대 차이는 다음과 같았습니다.
+InEKF propagation convention을 검토할 때 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현을 참고했습니다. 다음 수치는 0722 개발 당시 upstream commit `35855644064e4cfdfb67b83ff87b90af7f66fbf2`의 C++ propagation과 CF231 Run 5에 동일 초기 상태·bias·IMU를 넣어 비교했다고 남겨 둔 **historical propagation comparison** 기록입니다.
 
 ```text
 SO(3)       1.41e-13 deg
@@ -43,7 +43,7 @@ velocity    5.69e-12 m/s
 position    5.88e-10 m
 ```
 
-이 비교는 **measurement update가 없는 nominal propagation이 reference와 같다**는 것을 확인합니다. Kalman covariance/update 전체가 외부 구현과 동일하다는 증명은 아닙니다.
+현재 저장소에는 이 외부 비교의 script와 raw output이 없으므로 위 수치를 현재 primary benchmark와 같은 수준의 재현 가능한 validation 결과로 보면 안 됩니다. 또한 그 비교 범위는 measurement update가 없는 nominal propagation이었으며, Kalman covariance/update 전체가 외부 구현과 동일하다는 근거가 아닙니다.
 
 ## 5. 결과 출처
 

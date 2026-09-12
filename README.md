@@ -45,7 +45,7 @@ state-estimation-run-all --config config/euroc.yaml --particles 500
 
 - `estimate.csv`: 시각별 추정값과 GT
 - `metrics.json`: 위치, Euler 자세, SO(3) 자세 오차
-- `run_manifest.json`: 설정, bias, 초기 상태, update 횟수, 데이터 출처
+- `run_manifest.json`: 설정, bias, 초기 상태, update 횟수, 데이터 출처, project version과 git commit
 - `trajectory.png`, `error.png`: 실행 결과 그래프
 
 ## 바로 알아야 할 결론

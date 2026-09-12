@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -98,6 +99,23 @@ def _jsonable(value):
     return value
 
 
+def _git_commit() -> str:
+    """Return the checked-out commit without making runs depend on Git."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=2.0,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    commit = result.stdout.strip()
+    return commit if commit else "unknown"
+
+
 def run_filter(args: argparse.Namespace) -> dict:
     common_cfg = _load_yaml(args.config)
     filter_cfg = _load_yaml(args.filter_config) if args.filter_config else _load_yaml(REPO_ROOT / "config" / f"{get_canonical_name(args.filter)}.yaml")
@@ -164,6 +182,7 @@ def run_filter(args: argparse.Namespace) -> dict:
     manifest = {
         "software": {
             "project_version": __version__,
+            "git_commit": _git_commit(),
             "python_version": sys.version.split()[0],
             "numpy_version": np.__version__,
             "command": sys.argv,

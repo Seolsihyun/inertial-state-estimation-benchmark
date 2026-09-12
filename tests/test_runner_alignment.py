@@ -1,4 +1,5 @@
 from argparse import Namespace
+import json
 
 import numpy as np
 
@@ -46,10 +47,21 @@ def test_initial_state_is_not_propagated_twice(monkeypatch, tmp_path) -> None:
         filter="ekf", config=str(config_path), filter_config=str(filter_path),
         output_root=str(tmp_path / "outputs"), max_steps=0, particles=None, no_plots=True,
     )
+    monkeypatch.setattr(runner, "_git_commit", lambda: "test-commit")
     runner.run_filter(args)
     output = np.genfromtxt(
         tmp_path / "outputs/alignment/three_samples/ekf/estimate.csv",
         delimiter=",", names=True,
     )
     assert output["est_px"].tolist() == [10.0, 11.0, 12.0]
-    assert (tmp_path / "outputs/alignment/three_samples/ekf/run_manifest.json").exists()
+    manifest_path = tmp_path / "outputs/alignment/three_samples/ekf/run_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["software"]["git_commit"] == "test-commit"
+
+
+def test_git_commit_falls_back_outside_git(monkeypatch) -> None:
+    def fail(*_args, **_kwargs):
+        raise runner.subprocess.CalledProcessError(128, ["git", "rev-parse", "HEAD"])
+
+    monkeypatch.setattr(runner.subprocess, "run", fail)
+    assert runner._git_commit() == "unknown"
