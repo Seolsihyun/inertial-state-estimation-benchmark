@@ -64,9 +64,7 @@ Q[dbg]    <- 0
 Q[dba]    <- 0
 ```
 
-따라서 현재 CF231의 process-noise 설정은 Allan variance 또는 IMU noise-density 식별에서 얻은 엄밀한 continuous-time spectral density가 아니라, 초기 정지 구간의 sample variance를 이용한 empirical covariance 설정입니다.
-
-향후에는 continuous-time IMU noise model과 `G Qc G^T` 기반 discretization을 별도로 검증할 필요가 있습니다.
+따라서 현재 CF231의 process-noise 설정은 초기 정지 구간의 sample variance를 이용한 empirical covariance 설정입니다.
 
 `InEKFAnalytic15D._analytic_process_jacobian()`이 `Phi`를 만듭니다. 개발 중 검산을 위해 같은 class에 central finite-difference 경로를 남겨 두었습니다. measurement Jacobian은 테스트에서 두 경로를 숫자로 비교합니다.
 
@@ -83,7 +81,7 @@ Kalman 계산은 `utils/filter_math.py::kalman_update()`, group correction은 `f
 
 ## 5. bias state
 
-공통 필터는 15D 상태에 bias error를 포함합니다. 다만 실험별 정책이 다릅니다.
+공통 필터는 15D 상태에 bias error를 포함합니다. 
 
 | 실험 | bias 초기값 | 실행 중 update |
 |---|---|---|
@@ -91,8 +89,6 @@ Kalman 계산은 `utils/filter_math.py::kalman_update()`, group correction은 `f
 | synthetic | generator의 초기 true bias | random walk는 필터에 알려주지 않음 |
 | CF231 fixed/TCN | Run 5 초기 정지 구간 | `update_biases=False`, 고정 |
 | i2Nav/Pohang | 0 | 현재 별도 calibration 없음 |
-
-따라서 데이터셋 간 RMSE를 비교할 때는 bias 조건을 같은 것처럼 해석하면 안 됩니다.
 
 ## 6. CF231 Small TCN 경로
 
