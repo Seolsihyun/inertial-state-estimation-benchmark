@@ -126,7 +126,6 @@ def run_filter(args: argparse.Namespace) -> dict:
     dataset_config, compare_config = _make_filter_config(args.filter, common_cfg, filter_cfg, dataset)
     filter_cls = get_filter_class(args.filter)
     estimator = filter_cls.from_configs(dataset_config, compare_config)
-
     measurement_cfg = common_cfg.get("measurements", {})
     use_position = bool(measurement_cfg.get("use_position", True))
     use_velocity = bool(measurement_cfg.get("use_velocity", False))
@@ -156,7 +155,6 @@ def run_filter(args: argparse.Namespace) -> dict:
                     noise_config=measurement_cfg,
                 )
             estimates[i] = estimator.estimate_pose()
-
     metrics = compute_metrics(estimates, dataset.ground_truth)
     metrics.update({
         "filter": get_canonical_name(args.filter),

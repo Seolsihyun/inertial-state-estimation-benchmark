@@ -46,7 +46,7 @@
 
 ## 3. 3D motion-regime stress test
 
-모든 regime에서 45 s, 50 Hz, 같은 IMU noise/bias random walk, fused의 경우 1 Hz position update를 사용합니다. mobile robot -> surface vessel -> drone 순서로 angular rate, roll/pitch, z motion, 궤적 주파수를 함께 늘립니다.
+모든 regime에서 45 s, 50 Hz, 같은 IMU noise/bias random walk, fused의 경우 1 Hz position update를 사용합니다. mobile robot -> surface vessel -> drone 순서로 angular rate, roll/pitch, z motion, 궤적 주파수를 함께 늘립니다. 회전 하나만의 영향을 분리한 실험은 아닙니다.
 
 | regime | angular-rate RMS [rad/s] | InEKF IMU-only 위치 RMSE [m] | InEKF IMU-only yaw RMSE [deg] | InEKF fused 위치 RMSE [m] |
 |---|---:|---:|---:|---:|
@@ -69,10 +69,10 @@
 - process-noise stationary variance: Runs 3, 9, 10의 초기 1 s IMU
 - Run 5 fixed bias: Run 5의 검출된 초기 정지 구간; accelerometer bias의 gravity direction은 Run 5 초기 orientation 사용
 - test: Run 5, 181.3 s, 18,149 samples
-- Run 5 GT/reference: 초기 `R,v,p`와 accelerometer bias의 gravity direction, 전체 GT trajectory는 최종 scoring
+- Run 5 GT/reference: 초기 `R,v,p`와 accelerometer bias의 gravity direction, 전체 trajectory는 최종 scoring
 - 초기화 이후 time-varying Run 5 GT: propagation, TCN inference, InEKF update에 사용하지 않음
 - 초기화 후 runtime sensor: IMU
-- Small TCN: 36,003 parameters, 200-sample causal window
+- Small TCN: 36,003 parameters, 200 raw-sample causal span, downsample=2
 
 ![CF231 learned comparison](results/figures/cf231_learned_comparison.png)
 

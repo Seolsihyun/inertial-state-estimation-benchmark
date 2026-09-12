@@ -34,21 +34,21 @@ EKF/UKF/PF/ESKF도 동일 IMU 입력과 중력 정의를 쓰지만, quaternion a
 
 ## 3. InEKF covariance propagation
 
-InEKF의 local error state와 `process_noise_diag`의 순서는 같습니다.
+error-state와 `process_noise_diag`의 순서는 다음과 같습니다.
 
 ```text
-delta x = [dtheta, dv, dp, dbg, dba]
+[dtheta, dv, dp, dbg, dba]
 ```
 
-| `process_noise_diag` slice | 코드에서의 의미 |
+| slice | 의미 |
 |---|---|
-| `[0:3]` | local rotation error `dtheta`에 더하는 축별 noise variance weight |
-| `[3:6]` | local velocity error `dv`에 더하는 축별 noise variance weight |
-| `[6:9]` | local position error `dp`에 더하는 축별 noise variance weight |
-| `[9:12]` | gyro-bias error `dbg`에 더하는 축별 noise variance weight |
-| `[12:15]` | accelerometer-bias error `dba`에 더하는 축별 noise variance weight |
+| `[0:3]` | local rotation error `dtheta` noise weight |
+| `[3:6]` | local velocity error `dv` noise weight |
+| `[6:9]` | local position error `dp` noise weight |
+| `[9:12]` | gyro-bias error `dbg` noise weight |
+| `[12:15]` | accelerometer-bias error `dba` noise weight |
 
-`process_noise_scale`을 각 원소에 곱한 뒤 `diagonal_covariance()`가 최소 `1e-12`로 clip하여 `Q`를 만듭니다. `predict()`에 구현된 실제 공분산 예측식은 다음과 같습니다.
+`process_noise_scale`을 곱한 뒤 `diagonal_covariance()`가 각 원소를 최소 `1e-12`로 clip해 `Q`를 만듭니다. `filters/InEKF.py::predict()`의 실제 covariance prediction은 다음과 같습니다.
 
 ```text
 q = max(process_noise_scale, 0) * process_noise_diag
@@ -58,13 +58,9 @@ P_raw[k+1] = Phi[k] P[k] Phi[k]^T
 P[k+1] = stabilize(P_raw[k+1])
 ```
 
-`stabilize()`는 행렬을 대칭화하고 고유값을 설정된 floor/ceiling 범위로 제한합니다. 즉 현재 코드는 일반적인 `P = Phi P Phi^T + G Qc G^T dt`를 별도의 `G`로 구현한 것이 아니라, 위의 `Phi Q Phi^T * dt`를 그대로 사용합니다.
+즉 현재 구현은 별도의 `G Qc G^T` continuous-to-discrete 계산이 아니라 `Phi Q Phi^T * dt`를 그대로 사용합니다. `stabilize()`는 공분산을 대칭화하고 고유값을 설정된 floor/ceiling 범위로 제한합니다.
 
-runner가 사용하는 `InEKF`는 `InEKFAnalytic15D`의 alias이며, 기본 `jacobian_mode="analytic"`에서 `_analytic_process_jacobian()`이 discrete transition `Phi`를 만듭니다. 다만 이 함수 안에서 gyro-bias coupling 블록은 3축에 대한 local central finite difference로 구합니다. 검산용 `finite` mode는 전체 15D process Jacobian을 central finite difference로 계산하며, 테스트에서 기본 경로와 비교합니다.
-
-### CF231에서 넣는 process noise
-
-`learned/cf231_protocol.py::training_calibration()`은 기본 bias runs 3, 9, 10의 각 초기 1 s 정지 샘플에서 축별 robust variance `(1.4826 * MAD)^2`를 구하고, 그 run들 간 median을 저장합니다. `runners/run_cf231_small_tcn.py::make_inekf()`는 이 값을 다음과 같이 사용합니다.
+CF231의 `training_calibration()`은 기본 Runs 3, 9, 10의 초기 1 s 정지 샘플에서 축별 robust variance `(1.4826 * MAD)^2`를 구한 뒤 run 간 median을 저장합니다. `make_inekf()`는 이 값을 다음 블록에 넣습니다.
 
 ```text
 process_noise_diag[0:3] = gyro_sample_variance
@@ -72,11 +68,11 @@ process_noise_diag[3:6] = accel_sample_variance
 process_noise_diag[6:15] = 0
 ```
 
-마지막 9개 원소의 0은 `diagonal_covariance()`에서 실제 `Q`를 만들 때 `1e-12`로 clip됩니다. 이 `Q`는 fixed-bias IMU DR에서는 nominal trajectory를 바꾸지 않고 공분산만 전파하며, Small TCN + InEKF에서는 velocity update의 Kalman gain에 영향을 줍니다.
+마지막 9개 0은 `Q`를 만들 때 `1e-12`로 clip됩니다. Run 5 정지 구간은 process-noise variance가 아니라 gyro/accelerometer **mean**으로 고정 bias를 구하는 데 쓰입니다. 그 bias로 propagation IMU를 미리 보정하고 필터 내부 bias는 0, `update_biases=False`로 실행합니다.
 
-Run 5 초기 정지 구간은 이 process-noise variance를 맞추는 데 쓰지 않습니다. `test_calibration()`이 그 구간의 gyro/accelerometer **mean**으로 고정 bias를 구해 propagation IMU를 미리 보정하고, 필터 내부 bias는 0, `update_biases=False`로 실행합니다.
+이 noise 설정은 Allan variance/deviation로 continuous-time sensor noise density와 bias random walk를 식별한 것이 아니며, `sample_period_s`를 이용한 spectral-density 변환도 하지 않습니다. 따라서 엄밀한 Allan-variance 기반 continuous-time noise identification으로 해석하면 안 됩니다.
 
-현재 CF231 noise 설정은 정지 샘플의 robust variance를 직접 매핑한 것입니다. Allan variance/deviation로 continuous-time gyro/accelerometer noise density와 bias random walk를 식별한 것이 아니며, `sample_period_s`를 이용한 spectral-density 변환도 하지 않습니다. 따라서 이 값을 엄밀하게 식별된 continuous-time IMU noise parameter로 해석하면 안 됩니다.
+`InEKFAnalytic15D._analytic_process_jacobian()`이 `Phi`를 만듭니다. 이 함수 안의 gyro-bias coupling은 3축 local central finite difference로 구하며, 검산용 `finite` mode는 전체 15D process Jacobian을 central finite difference로 계산합니다.
 
 ## 4. right perturbation과 update
 
@@ -111,7 +107,7 @@ Runs 3,4,9,10 IMU window
  -> InEKF Kalman update
 ```
 
-- window: 200 samples, downsample 2
+- window: 최근 200 raw sample 구간, downsample 2 -> network 입력 100 time steps
 - 입력: 6-axis IMU
 - 출력: heading frame 3D velocity
 - test: Run 5

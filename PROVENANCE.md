@@ -31,15 +31,9 @@
 
 ## 4. 외부 참고 구현
 
-InEKF propagation convention은 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현을 참고했습니다. 아래 수치는 0722 개발 당시에 남긴 **historical propagation comparison** 기록입니다.
+InEKF nominal propagation convention은 개발 중 `ghaggin/invariant-ekf`의 `SE_2(3)` LIEKF 구현과 비교했습니다.
 
-```text
-SO(3)       1.41e-13 deg
-velocity    5.69e-12 m/s
-position    5.88e-10 m
-```
-
-현재 저장소에는 이 비교의 script와 raw output이 없으므로, 위 수치는 현재 primary benchmark처럼 재현할 수 있는 validation 결과가 아닙니다. 당시 비교 범위도 measurement update가 없는 nominal propagation이며, Kalman covariance/update 전체에 대한 외부 검증은 아닙니다.
+이는 0722 개발 당시의 **historical propagation comparison**입니다. 현재 저장소에는 비교 script와 raw output이 없으므로 primary benchmark처럼 재현할 수 있는 validation 결과로 보지 않습니다. 또한 비교 범위는 measurement update가 없는 nominal propagation이며, Kalman covariance/update 전체에 대한 외부 검증은 아닙니다.
 
 ## 5. 결과 출처
 
