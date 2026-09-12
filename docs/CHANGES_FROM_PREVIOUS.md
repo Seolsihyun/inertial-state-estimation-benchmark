@@ -2,8 +2,8 @@
 
 비교 기준은 다음 세 단계입니다.
 
-- 지난 학기: `INHA-Artemis/State_Estimation_Benchmark` commit `2b9199f`
-- 이번 작업의 출발점: `andyjaehun/State_Estimation` commit `0967c47`
+- 지난 학기: `INHA-Artemis/State_Estimation_Benchmark`
+- 이번 작업의 출발점: `andyjaehun/State_Estimation`
 - 현재 저장소: 공통 실행기, 연속 DR, CF231 held-out 학습 실험을 합친 구조
 
 ## 1. 지난 학기 결과와의 차이
@@ -18,13 +18,14 @@
 | DR 검증 | local/window drift와 결과 영상 | 초기화 1회의 연속 IMU-only 분리 |
 | 학습 결합 | 없음 | CF231 Small TCN velocity + InEKF |
 
-이전 그래프를 단순히 더 많이 만든 것이 아니라, 입력과 설정을 같게 하고 실행 경로를 하나로 만든 것이 구조적인 변경입니다.
+이번 실험은 입력과 설정을 같게 하고 실행 경로를 하나로 만든 것이 구조적인 변경입니다.
 
 ## 2. 이번 코드에서 찾은 문제
 
 ### 2.1 초기 sample을 한 번 더 적분
 
-이전 `runners/run_filter.py`는 `i=0`에서부터 `predict(control[0], dt[0])`를 호출한 뒤 그 값을 `ground_truth[0]`과 비교했습니다. 필터는 이미 `ground_truth[0]`으로 초기화되어 있어 0번 구간이 이중 반영되었습니다.
+이전 `runners/run_filter.py`는 `i=0`에서부터 `predict(control[0], dt[0])`를 호출한 뒤 그 값을 `ground_truth[0]`과 비교했습니다.
+필터는 이미 `ground_truth[0]`으로 초기화되어 있어 0번 구간이 이중 반영되었습니다.
 
 수정:
 
@@ -80,13 +81,3 @@ theta = acos((trace(R_error) - 1) / 2)
 Pohang, i2Nav street01, UrbanNav 과거 표에는 원 설정·loader·output이 없는 값이 포함되어 있었습니다. Pohang은 `baseline.txt`를 update와 evaluation에 같이 쓴 값이어서 독립 위치 성능이 아닙니다.
 
 수정: 해당 CSV·그래프를 공개 결과에서 제거했습니다. `RESULTS.md`는 현재 코드와 설정으로 다시 실행할 수 있는 EuRoC, synthetic motion regime, CF231만 수치를 제시합니다.
-
-## 3. 아직 해결하지 못한 것
-
-- ESKF 발산 원인의 완전한 규명
-- 실제 GNSS와 독립 GT를 쓴 Pohang 비교
-- i2Nav street00의 전체 필터 동일 조건 재실행
-- CF231의 다른 test run 및 다른 플랫폼 외부 일반화
-- NIS/NEES 기반 consistency 비교
-
-이 항목은 성능 결론으로 쓰지 않습니다.
