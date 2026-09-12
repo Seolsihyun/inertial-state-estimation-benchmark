@@ -20,7 +20,6 @@ TCN을 실행할 때는 `pip install -e ".[learned]"`를 사용합니다. 데이
 - RPY에서 계산한 SO(3) 오차
 - TCN parameter 수, causal window, normalization shape
 
-테스트 통과는 실제 데이터 성능을 보장하지 않습니다. 식·shape·순서의 회귀를 막는 장치입니다.
 
 ## 3. EuRoC 연속 IMU-only
 
@@ -47,7 +46,7 @@ state-estimation-run-all \
   --particles 500
 ```
 
-`config/euroc.yaml`의 `imu_stride=5`, `measurement_stride=20`이므로 update는 약 2 Hz입니다. 전체 update 횟수는 291회여야 합니다. 측정은 실제 GNSS가 아니라 GT position에 0.05 m Gaussian noise를 더한 값입니다.
+`config/euroc.yaml`의 `imu_stride=5`, `measurement_stride=20`이므로 update는 약 2 Hz입니다. 측정은 실제 GNSS가 아니라 GT position에 0.05 m Gaussian noise를 더한 값입니다.
 
 ## 5. 3D motion regimes
 
@@ -93,7 +92,7 @@ state-estimation-run-all --config config/i2nav_street00.yaml
 state-estimation-run-all --config config/pohang05.yaml
 ```
 
-i2Nav는 F9P GNSS를 update에, `groundtruth.nav`를 evaluation에 사용합니다. Pohang 기본 loader는 `baseline.txt`를 update와 evaluation에 같이 쓰므로 위치 RMSE를 독립 localization 성능으로 보고하지 않습니다.
+i2Nav는 F9P GNSS를 update에, `groundtruth.nav`를 evaluation에 사용합니다.
 
 ## 8. 결과 파일
 
@@ -106,5 +105,3 @@ outputs/<dataset>/<sequence>/<filter>/
   trajectory.png
   error.png
 ```
-
-결과를 공유할 때는 `metrics.json`만 복사하지 말고 `run_manifest.json`, 사용한 YAML, commit hash를 함께 남깁니다.
