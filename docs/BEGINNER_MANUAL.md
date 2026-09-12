@@ -9,7 +9,7 @@
 - bias: 정지해도 0이 아닌 센서의 지속적인 오프셋
 - predict: IMU를 적분하는 단계
 - measurement update: GNSS 위치나 학습 속도로 예측을 교정하는 단계
-- GT: 추정값을 비교하는 기준값. GT를 update에 쓰면 독립 평가가 아니다.
+- GT: 추정값을 비교하는 기준값
 
 ## 2. 상태, 입력, 단위
 
@@ -21,7 +21,7 @@ bg : gyro bias [rad/s]
 ba : accelerometer bias [m/s^2]
 ```
 
-공통 IMU 입력은 `[ax, ay, az, gx, gy, gz]`입니다. 가장 흔한 실수는 ① deg/s를 rad/s로 바꾸지 않는 것, ② specific force와 world acceleration을 혼동하는 것, ③ body-to-world 회전을 반대로 쓰는 것입니다.
+공통 IMU 입력은 `[ax, ay, az, gx, gy, gz]`입니다.
 
 loader 출력은 `datasets/common.py` 안의 `CommonDataset`으로 통일됩니다. 새 데이터를 넣을 때는 필터보다 loader의 축·단위·timestamp를 먼저 검사합니다.
 
@@ -39,7 +39,7 @@ i = 1 ... N-1:
 GT와 error 계산 -> CSV/JSON/PNG 저장
 ```
 
-0번 sample을 다시 적분하지 않는 이유는 초기 상태가 이미 `timestamps[0]`의 값이기 때문입니다. `tests/test_runner_alignment.py`가 이 정렬을 검사합니다.
+`tests/test_runner_alignment.py`가 이 정렬을 검사합니다.
 
 ## 4. IMU predict
 
@@ -61,7 +61,7 @@ p_next = p + v * dt + R * Gamma2(phi) * f * dt^2 + 0.5 * g * dt^2
 
 ### EuRoC
 
-`datasets/euroc.py`는 GT 첫 sample에 포함된 gyro/accelerometer bias를 초기값으로 읽습니다. 따라서 EuRoC IMU-only 결과는 **GT bias를 알고 시작하는 조건**입니다. 평가 중 GT 위치 update는 없지만 self-calibration 실험은 아닙니다.
+`datasets/euroc.py`는 GT 첫 sample에 포함된 gyro/accelerometer bias를 초기값으로 읽습니다. 따라서 EuRoC IMU-only 결과는 GT bias를 알고 시작하는 조건입니다.
 
 ### CF231 Run 5
 
